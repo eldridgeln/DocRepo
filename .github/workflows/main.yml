@@ -37,13 +37,6 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
-        name: Aqua Image Scanner - Scan Image and Register to Aqua Console # Note the --registry and --register-compliant command 
-        run: |
-          docker image ls
-          docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
-          docker pull registry.aquasec.com/scanner:2022.4
-          docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock registry.aquasec.com/scanner:2022.4 scan -U $AQUA_SCANNER_USER -P $AQUA_SCANNER_PASSWORD -H $AQUA_SERVER_URL --local "stalibali/clockbox" --jsonfile /tmp/out.json --register-compliant > /dev/null
-      -
         name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -51,3 +44,10 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
+      -
+        name: Aqua Image Scanner - Scan Image and Register to Aqua Console # Note the --registry and --register-compliant command 
+        run: |
+          docker image ls
+          docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
+          docker pull registry.aquasec.com/scanner:2022.4
+          docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock registry.aquasec.com/scanner:2022.4 scan -U $AQUA_SCANNER_USER -P $AQUA_SCANNER_PASSWORD -H $AQUA_SERVER_URL --local "stalibali/clockbox" --jsonfile /tmp/out.json --register-compliant > /dev/null     
