@@ -49,7 +49,7 @@ jobs:
           file: ./Dockerfile
           push: false
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.run_id }}
-     # - 
+     # -
      #   name: Pull the Container Image
      #   run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
       -
@@ -66,8 +66,3 @@ jobs:
         push: true
         tags: $image-ref
         #tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
-      - 
-       uses: actions/upload-artifact@v3
-       with:
-        name: aqua-artifact
-        path: out.*
