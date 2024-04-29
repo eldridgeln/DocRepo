@@ -45,9 +45,9 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
-      - 
-        name: Pull the Container Image
-        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
+     # - 
+     #   name: Pull the Container Image
+     #   run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
       -
         name: Aqua Image Scanner - Scan Image and Register to Aqua Console # Note the --registry and --register-compliant command 
         run: |
