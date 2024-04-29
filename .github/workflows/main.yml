@@ -38,13 +38,13 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
-        name: Build and push
+        name: Build
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
+          #push: true
+          #tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
      # - 
      #   name: Pull the Container Image
      #   run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
@@ -54,4 +54,16 @@ jobs:
           docker image ls
           docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
           docker pull registry.aquasec.com/scanner:2022.4
-          docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock -e BUILD_NUMBER=$BUILD_NUMBER -e BUILD_JOB_NAME=$BUILD_NAME registry.aquasec.com/scanner:2022.4 scan -w /tmp -H $AQUA_SERVER_URL -U $AQUA_SCANNER_USER -P $AQUA_SCANNER_PASSWORD --show-negligible --local $DST_IMAGE --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub"
+          docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock -e BUILD_NUMBER=$BUILD_NUMBER -e BUILD_JOB_NAME=$BUILD_NAME registry.aquasec.com/scanner:2022.4 scan -w /tmp -H $AQUA_SERVER_URL -U $AQUA_SCANNER_USER -P $AQUA_SCANNER_PASSWORD --show-negligible --local ${{ github.run_id }}  --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub"
+      - 
+       name: Push Scanned Embedded image to Local/Private Container Registry
+       run: |
+        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        #docker push $DST_IMAGE 
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
+      - 
+       uses: actions/upload-artifact@v3
+       with:
+        name: aqua-artifact
+        path: out.*
