@@ -11,7 +11,17 @@ on:
 env:
   BuildNumber: ${{ github.run_id }}-${{ github.run_number }}
   ImageName: 'stalibali/container-scanning-demo'
+  image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}
+  
+  # Authenticate with Aqua Registry - optional if Aqua Scanner is pushed to local private registry
+  AQUA_USER: ${{ secrets.AQUA_USER }} # Aqua Registry
+  AQUA_PASSWORD: ${{ secrets.AQUA_PASSWORD }} # Aqua Registry
 
+  # Authenticate the Aqua Scanner with Aqua Server 
+  AQUA_SCANNER_USER: ${{ secrets.AQUA_SCANNER_USER }} # Aqua Image Scanner authentication
+  AQUA_SCANNER_PASSWORD: ${{ secrets.AQUA_SCANNER_PASSWORD }} # Aqua Image Scanner authentication
+  AQUA_SERVER_URL: ${{ secrets.AQUA_SERVER_URL }} # Aqua Image Scanner authentication
+  
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -41,25 +51,12 @@ jobs:
         # Whether to push the image
         push: false
   
-    - name: Trivy Scan - Unknown, Low and Medium Severity
-      uses: aquasecurity/trivy-action@0.0.7
-      with:
-        # image reference
-        image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}
-        # exit code when vulnerabilities were found
-        exit-code: 0
-        # severities of vulnerabilities to be displayed
-        severity: UNKNOWN,LOW,MEDIUM
-        
-    - name: Trivy Scan - High and Critical Severity
-      uses: aquasecurity/trivy-action@0.0.7
-      with:
-        # image reference
-        image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}
-        # exit code when vulnerabilities were found
-        exit-code: 1
-        # severities of vulnerabilities to be displayed
-        severity: HIGH,CRITICAL
+    - name: Aqua Image Scanner - Scan Embedded Image and Register to Aqua Console # Note the --registry and --register-compliant command 
+      run: |
+        docker image ls
+        docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
+        docker pull registry.aquasec.com/scanner:2022.4
+        docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock -e BUILD_NUMBER=$BUILD_NUMBER -e BUILD_JOB_NAME=$BUILD_NAME registry.aquasec.com/scanner:2022.4 scan -w /tmp --host $AQUA_SERVER_URL --user $AQUA_SCANNER_USER --password $AQUA_SCANNER_PASSWORD --show-negligible --local $image-ref --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "My_Registry" > /dev/null
         
     - name: Push Docker image
       uses: docker/build-push-action@v1.1.0
