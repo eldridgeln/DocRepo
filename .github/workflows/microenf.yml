@@ -60,15 +60,16 @@ jobs:
     #    docker push $DST_IMAGE 
     
     - name: Push Scanned Embedded image to Local/Private Container Registry
-      uses: docker/build-push-action@v1.1.0
+      uses: docker/build-push-action@v5
       with:
+        context: .
         # Username used to log in to a Docker registry. If not set then no login will occur
         username: ${{ secrets.DOCKER_USERNAME }}
         # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
         password: ${{ secrets.DOCKER_PASSWORD }}
         # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
-        tags: $DST_IMAGE
         push: true
+        tags: $DST_IMAGE
     
     - uses: actions/upload-artifact@v3
       with:
