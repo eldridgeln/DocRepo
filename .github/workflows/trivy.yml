@@ -35,13 +35,21 @@ jobs:
         with:
           image-ref: 'docker.io/stalibali/clockbox:${{ github.sha }}'
           scan-type: image
-          format: 'table'
+          format: 'json'
           output: 'dependency-results.sbom.json'
           # exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           scanners: 'vuln,secret,config'
           severity: "LOW,MEDIUM,HIGH,CRITICAL"
+
+      -  name: Push an image after scanning from Dockerfile
+         uses: docker/build-push-action@v5
+         with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
 
       - name: Upload trivy report as a Github artifact
         uses: actions/upload-artifact@v4
