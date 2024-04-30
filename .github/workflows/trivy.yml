@@ -26,7 +26,7 @@ jobs:
          uses: docker/build-push-action@v5
          with:
           context: .
-          file: ./Dockerfile-1
+          file: ./Dockerfile
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
 
       - name: Run Trivy vulnerability scanner
@@ -44,3 +44,8 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
+
+      - uses: actions/upload-artifact@v3
+        with:
+         name: aqua-artifact
+         path: out.*
