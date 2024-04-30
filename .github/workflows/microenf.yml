@@ -24,7 +24,7 @@ env:
 
   # Env Var for the generic purposes
   BuildNumber: ${{ github.run_id }}-${{ github.run_number }}
-  ImageName: 'stalibali/container-scanning-demo'
+  ImageName: stalibali/container-scanning-demo
    # image reference
   image-ref: ${{ ImageName }}:github-${{ env.BuildNumber }}
         
