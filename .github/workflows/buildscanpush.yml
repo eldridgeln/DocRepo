@@ -57,12 +57,6 @@ jobs:
     - name: Aqua Image Scanner - Scan Embedded Image and Register to Aqua Console # Note the --registry and --register-compliant command 
       run: |
         docker image ls
-        docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
-        docker pull registry.aquasec.com/scanner:2022.4
- 
-    - name: Aqua Image 
-      run: |
-        docker image ls
         
     - name: Push Docker image
       uses: docker/build-push-action@v3
