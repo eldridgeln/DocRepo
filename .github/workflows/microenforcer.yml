@@ -59,7 +59,7 @@ jobs:
          chmod +x aquactl
          wget --user $AQUA_USER --password $AQUA_PASSWORD https://download.aquasec.com/micro-enforcer/2022.4.460/x86/microenforcer
          chmod +x microenforcer 
-         sudo ./aquactl inject --src-image $SRC_IMAGE --dst-image $DST_IMAGE --microenforcer-binary ./microenforcer --aqua-server $AQUA_GATEWAY --aqua-token $AQUA_ME_EnforcerGroup_Toke
+         sudo ./aquactl inject --src-image $SRC_IMAGE --dst-image $DST_IMAGE --microenforcer-binary ./microenforcer --aqua-server $AQUA_GATEWAY --aqua-token $AQUA_ME_EnforcerGroup_Token
         
     - name: Aqua Image Scanner - Scan Embedded Image and Register to Aqua Console # Note the --registry and --register-compliant command 
       run: |
