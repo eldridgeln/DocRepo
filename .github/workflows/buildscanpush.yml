@@ -23,7 +23,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} # Docker Registry authentication
 
   BuildNumber: ${{ github.run_id }}-${{ github.run_number }}
-  ImageName: 'stalibali/stalibali/clockbox'
+  ImageName: 'stalibali/clockbox'
 
 jobs:
   # This workflow contains a single job called "build"
