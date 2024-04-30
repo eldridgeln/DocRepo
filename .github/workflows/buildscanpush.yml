@@ -58,9 +58,8 @@ jobs:
       run: |
         docker image ls
         
-       
     - name: Push Docker image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v5
       with:
         # Username used to log in to a Docker registry. If not set then no login will occur
         username: ${{ secrets.DOCKER_USERNAME }}
@@ -76,3 +75,8 @@ jobs:
         dockerfile: './Dockerfile'
         # Whether to push the image
         push: true
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: aqua-artifact
+        path: out.*
