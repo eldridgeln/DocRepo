@@ -37,7 +37,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Build Docker image
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v5
       with:
         # Username used to log in to a Docker registry. If not set then no login will occur
         username: ${{ secrets.DOCKER_USERNAME }}  
@@ -60,7 +60,7 @@ jobs:
         
        
     - name: Push Docker image
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         # Username used to log in to a Docker registry. If not set then no login will occur
         username: ${{ secrets.DOCKER_USERNAME }}
