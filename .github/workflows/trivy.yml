@@ -33,19 +33,22 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'docker.io/stalibali/clockbox:${{ github.sha }}'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          scan-type: image
+          format: 'json'
+          output: 'dependency-results.sbom.json'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH,MEDIUM'
+          severity: "MEDIUM,HIGH,CRITICAL"
           
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload trivy report as a Github artifact
+        uses: actions/upload-artifact@v4
         with:
-         name: aqua-artifact
-         path: out.*
+          name: trivy-sbom-report
+          path: '${{ github.workspace }}/dependency-results.sbom.json'
+          retention-days: 20 # 90 is the default
