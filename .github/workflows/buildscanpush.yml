@@ -23,7 +23,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} # Docker Registry authentication
 
   BuildNumber: ${{ github.run_id }}-${{ github.run_number }}
-  ImageName: 'stalibali/container-scanning-demo'
+  ImageName: 'stalibali/stalibali/clockbox'
 
 jobs:
   # This workflow contains a single job called "build"
@@ -58,7 +58,7 @@ jobs:
       run: |
         docker image ls
         
-        
+       
     - name: Push Docker image
       uses: docker/build-push-action@v3
       with:
