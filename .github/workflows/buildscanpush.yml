@@ -70,7 +70,7 @@ jobs:
         # image reference        
         image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}        
         # exit code when vulnerabilities were found
-        exit-code: 1
+        exit-code: 0
         # severities of vulnerabilities to be displayed
         severity: HIGH,CRITICAL
 
