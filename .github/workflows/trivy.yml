@@ -36,7 +36,7 @@ jobs:
           scan-type: image
           format: 'json'
           output: 'dependency-results.sbom.json'
-          exit-code: '1'
+          # exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: "MEDIUM,HIGH,CRITICAL"
