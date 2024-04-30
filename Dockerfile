@@ -1,4 +1,4 @@
-FROM fedora:30
+FROM ubuntu:22.04
 
 RUN dnf install -y \
         buildah \
