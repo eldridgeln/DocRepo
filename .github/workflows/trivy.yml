@@ -5,9 +5,19 @@ on:
       - main
 env:
   # Authenticate with local/private registry. Can be ECR/ACR/GCR etc. 
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }} # Docker Registry authentication
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} # Docker Registry authentication
+  DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }} # Docker Registry authentication
+  DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }} # Docker Registry authentication
 
+  # Authenticate with Aqua Registry - optional if Aqua Scanner is pushed to local private registry
+  AQUA_USER: ${{ secrets.AQUA_USER }} # Aqua Registry
+  AQUA_PASSWORD: ${{ secrets.AQUA_PASSWORD }} # Aqua Registry
+
+  # Authenticate the Aqua Scanner with Aqua Server 
+  AQUA_SCANNER_USER: ${{ secrets.AQUA_SCANNER_USER }} # Aqua Image Scanner authentication
+  AQUA_SCANNER_PASSWORD: ${{ secrets.AQUA_SCANNER_PASSWORD }} # Aqua Image Scanner authentication
+  AQUA_SERVER_URL: ${{ secrets.AQUA_SERVER_URL }} # Aqua Image Scanner authentication
+  DST_IMAGE:  ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
+  
 jobs:
   build:
     name: Build
@@ -30,22 +40,29 @@ jobs:
           push: false
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'docker.io/stalibali/clockbox:${{ github.sha }}'
-          scan-type: image
-          format: 'table'
-          # output: 'dependency-results.sbom.json'
-          # exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          scanners: 'vuln,secret,config'
-          severity: "LOW,MEDIUM,HIGH,CRITICAL"
+    #  - name: Run Trivy vulnerability scanner
+    #    uses: aquasecurity/trivy-action@master
+    #    with:
+    #      image-ref: 'docker.io/stalibali/clockbox:${{ github.sha }}'
+    #      scan-type: image
+    #      format: 'table'
+    #      # output: 'dependency-results.sbom.json'
+    #      # exit-code: '1'
+    #      ignore-unfixed: true
+    #      vuln-type: 'os,library'
+    #      scanners: 'vuln,secret,config'
+    #      severity: "LOW,MEDIUM,HIGH,CRITICAL"
 
-      -  name: Push an image after scanning from Dockerfile
-         uses: docker/build-push-action@v5
-         with:
+      - name: Aqua Image Scanner
+        run: |
+         docker image ls
+         docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
+         docker pull registry.aquasec.com/scanner:2022.4
+         docker run --rm -v /var/run/docker.sock:/var/run/docker.sock registry.aquasec.com/scanner:2022.4 scan --host $AQUA_SERVER_URL --user $AQUA_SCANNER_USER --password $AQUA_SCANNER_PASSWORD --show-negligible --local $DST_IMAGE --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub"
+    
+      - name: Push an image after scanning from Dockerfile
+        uses: docker/build-push-action@v5
+        with:
           context: .
           file: ./Dockerfile-1
           push: true
