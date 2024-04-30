@@ -1,11 +1,11 @@
 # Use an outdated version of Alpine Linux as the base image
 FROM alpine:3.10
 
-# Install a vulnerable package (example: using an outdated version of a utility)
-RUN apk --no-cache add util-linux=2.33-r0
+# Install the latest version of a package known to have vulnerabilities (e.g., wget)
+RUN apk --no-cache add wget
 
-# Create a vulnerable script that uses the vulnerable package
-RUN echo "Using vulnerable util-linux: $(which fdisk)" > /vulnerable_script.sh
+# Create a vulnerable script that uses the installed package
+RUN echo "Using vulnerable wget: $(wget --version)" > /vulnerable_script.sh
 
 # Set permissions to make the script executable
 RUN chmod +x /vulnerable_script.sh
