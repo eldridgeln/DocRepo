@@ -55,7 +55,7 @@ jobs:
         push: false
 
     - name: Trivy Scan - Unknown, Low and Medium Severity
-      uses: aquasecurity/trivy-action@0.0.7
+      uses: aquasecurity/trivy-action@0.33.0
       with:
         # image reference
         image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}  
@@ -65,7 +65,7 @@ jobs:
         severity: UNKNOWN,LOW,MEDIUM
         
     - name: Trivy Scan - High and Critical Severity
-      uses: aquasecurity/trivy-action@0.0.7
+      uses: aquasecurity/trivy-action@0.33.0
       with:
         # image reference        
         image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}        
