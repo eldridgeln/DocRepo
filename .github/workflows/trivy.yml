@@ -26,7 +26,7 @@ jobs:
          uses: docker/build-push-action@v5
          with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile-1
           push: false
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
 
@@ -47,7 +47,7 @@ jobs:
          uses: docker/build-push-action@v5
          with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile-1
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
 
