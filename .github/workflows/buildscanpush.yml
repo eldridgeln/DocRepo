@@ -24,7 +24,7 @@ env:
 
   BuildNumber: ${{ github.run_id }}-${{ github.run_number }}
   ImageName: 'stalibali/container-scanning-demo'
-  image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}
+  image-ref: ${{ ImageName }}:github-${{ BuildNumber }}
 
 jobs:
   # This workflow contains a single job called "build"
