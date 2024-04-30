@@ -26,7 +26,7 @@ env:
   BUILD_NUMBER: ${{ github.run_id }}
   BUILD_NAME: ${{ github.repository }}
   GITHUB_WORKSPACE: ${{ github.workspace }}
-  IMAGE_NAME: stalibali/container-scanning-demo
+  IMAGE_NAME: stalibali/container-scanning-demo:{{ github.run_id }}
   IMAGE_REF: ${{ IMAGE_NAME }}:github-${{ BUILD_NUMBER }}
   
 jobs:       
