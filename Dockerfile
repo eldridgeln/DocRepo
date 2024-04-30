@@ -1,22 +1,20 @@
-# Dockerfile (Simulating vulnerabilities)
+#
+# Python Dockerfile
+#
+# https://github.com/dockerfile/python
+#
 
-# Using a Python 3.7 image
-FROM python:3.7
+# Pull base image.
+FROM dockerfile/ubuntu
 
-# Set working directory
-WORKDIR /app
+# Install Python.
+RUN \
+  apt-get update && \
+  apt-get install -y python python-dev python-pip python-virtualenv && \
+  rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt to the working directory
-COPY requirements.txt .
+# Define working directory.
+WORKDIR /data
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code
-COPY . .
-
-# Expose port
-EXPOSE 5000
-
-# Command to run the application
-CMD ["python", "app.py"]
+# Define default command.
+CMD ["bash"]
