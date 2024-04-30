@@ -34,10 +34,10 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Build Docker image
-      uses: docker/build-push-action@v1.1.0
+      uses: docker/build-push-action@v3
       with:
         # Username used to log in to a Docker registry. If not set then no login will occur
         username: ${{ secrets.DOCKER_USERNAME }}  
@@ -75,12 +75,12 @@ jobs:
         severity: HIGH,CRITICAL
 
     - name: Push Docker image
-      uses: docker/build-push-action@v1.1.0
+      uses: docker/build-push-action@v3
       with:
         # Username used to log in to a Docker registry. If not set then no login will occur
-        username: ${{ secrets.DockerHubUser }}
+        username: ${{ secrets.DOCKER_USERNAME }}
         # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
-        password: ${{ secrets.DockerHubPassword }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
         # Docker repository to tag the image with
         repository: ${{ env.ImageName }}
         # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
