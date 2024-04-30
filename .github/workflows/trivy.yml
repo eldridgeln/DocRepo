@@ -34,7 +34,7 @@ jobs:
         with:
           image-ref: 'docker.io/stalibali/clockbox:${{ github.sha }}'
           scan-type: image
-          format: 'json'
+          format: 'table'
           output: 'dependency-results.sbom.json'
           # exit-code: '1'
           ignore-unfixed: true
