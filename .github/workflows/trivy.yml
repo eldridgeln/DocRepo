@@ -47,3 +47,8 @@ jobs:
           name: trivy-sbom-report
           path: '${{ github.workspace }}/dependency-results.sbom.json'
           retention-days: 20 # 90 is the default
+      
+      - uses: actions/upload-artifact@v3
+        with:
+         name: aqua-artifact
+         path: out.*
