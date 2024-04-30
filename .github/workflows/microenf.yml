@@ -23,35 +23,36 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} # Docker Registry authentication
 
   # Env Var for the generic purposes
-  BUILD_NUMBER: ${{ github.run_id }}
-  BUILD_NAME: ${{ github.repository }}
-  GITHUB_WORKSPACE: ${{ github.workspace }}
-  SRC_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/container-scanning-demo:${{ github.run_id }} # Source image name docker pull stalibali/container-scanning-demo:github-8884101102-2
-  DST_IMAGE: stalibali/container-scanning-demo:${{ github.run_id }} # Output image name (After MicroEnforcer injection)
+  BuildNumber: ${{ github.run_id }}-${{ github.run_number }}
   ImageName: 'stalibali/container-scanning-demo'
   
-jobs:       
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
   build:
-    name: Build Image, Inject MicroEnforcer, Scan Image.
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    -
-        name: Checkout
-        uses: actions/checkout@v4
-   
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
     - name: Build Docker image
       uses: docker/build-push-action@v1.1.0
       with:
         # Username used to log in to a Docker registry. If not set then no login will occur
-        username: ${{ secrets.DOCKER_USERNAME }}
+        username: ${{ secrets.DockerHubUser }}
         # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        password: ${{ secrets.DockerHubPassword }}
         # Docker repository to tag the image with
         repository: ${{ ImageName }}
         # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
-        tags: 'github-${{ BUILD_NUMBER }}'
+        tags: 'github-${{ BuildNumber }}'
+        # Path to the build context
+        path: 'src'
         # Path to the Dockerfile (Default is '{path}/Dockerfile')
-        dockerfile: ./Dockerfile
+        dockerfile: 'src/ContainerScanning.HelloWorld/Dockerfile'
         # Whether to push the image
         push: false
         
@@ -60,13 +61,25 @@ jobs:
         docker image ls
         docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
         docker pull registry.aquasec.com/scanner:2022.4
-        docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock -e BUILD_NUMBER=$BUILD_NUMBER -e BUILD_JOB_NAME=$BUILD_NAME registry.aquasec.com/scanner:2022.4 scan -w /tmp --host $AQUA_SERVER_URL --user $AQUA_SCANNER_USER --password $AQUA_SCANNER_PASSWORD --show-negligible --local $DST_IMAGE --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub" > /dev/null
+        docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock -e BUILD_NUMBER=$BUILD_NUMBER -e BUILD_JOB_NAME=$BUILD_NAME registry.aquasec.com/scanner:2022.4 scan -w /tmp --host $AQUA_SERVER_URL --user $AQUA_SCANNER_USER --password $AQUA_SCANNER_PASSWORD --show-negligible --local image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }} --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub" > /dev/null
     
-    - name: Push Scanned Embedded image to Local/Private Container Registry
-      uses: docker/build-push-action@v3
+    - name: Push Docker image
+      uses: docker/build-push-action@v1.1.0
       with:
-          push: true
-          tags: $DST_IMAGE
+        # Username used to log in to a Docker registry. If not set then no login will occur
+        username: ${{ secrets.DockerHubUser }}
+        # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
+        password: ${{ secrets.DockerHubPassword }}
+        # Docker repository to tag the image with
+        repository: ${{ ImageName }}
+        # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
+        tags: 'github-${{ BuildNumber }}'
+        # Path to the build context
+        path: 'src'
+        # Path to the Dockerfile (Default is '{path}/Dockerfile')
+        dockerfile: 'src/ContainerScanning.HelloWorld/Dockerfile'
+        # Whether to push the image
+        push: true
        
     - uses: actions/upload-artifact@v3
       with:
