@@ -59,7 +59,8 @@ jobs:
          docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
          docker pull registry.aquasec.com/scanner:2022.4
          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock registry.aquasec.com/scanner:2022.4 scan --host $AQUA_SERVER_URL --user $AQUA_SCANNER_USER --password $AQUA_SCANNER_PASSWORD --show-negligible --local $DST_IMAGE --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub"
-    
+         exit-code: '1'
+         
       - name: Push an image after scanning from Dockerfile
         uses: docker/build-push-action@v5
         with:
