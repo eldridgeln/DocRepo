@@ -1,11 +1,12 @@
-# syntax=docker/dockerfile:1
-FROM busybox:latest
-COPY --chmod=755 <<EOF /app/run.sh
-#!/bin/sh
-while true; do
-  echo -ne "The time is now $(date +%T)\\r"
-  sleep 1
-done
-EOF
+FROM registry.access.redhat.com/ubi8/python-39
+ENV PORT 8080
+EXPOSE 8080
+WORKDIR /usr/src/app
 
-ENTRYPOINT /app/run.sh
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+ENTRYPOINT ["python"]
+CMD ["app.py"]
