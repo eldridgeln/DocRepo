@@ -49,7 +49,7 @@ jobs:
          docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock registry.aquasec.com/scanner:2022.4 scan -w /tmp --host $AQUA_SERVER_URL --user $AQUA_SCANNER_USER --password $AQUA_SCANNER_PASSWORD --show-negligible --local $DST_IMAGE --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub"
          
          # Do not push the image to registry, if found Vuln.
-         # exit-code: '1'
+         exit-code: '1'
          
       - name: Push Scanned image to Local/Private Container Registry
         uses: docker/build-push-action@v5
