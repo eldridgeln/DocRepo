@@ -1,20 +1,17 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
-WORKDIR /app
+# Use an outdated version of Alpine Linux as the base image
+FROM alpine:3.10
+
+# Install a vulnerable package (e.g., old version of OpenSSL)
+RUN apk --no-cache add openssl=1.0.2t-r0
+
+# Create a vulnerable script that uses the vulnerable package
+RUN echo "Using vulnerable OpenSSL: $(openssl version)" > /vulnerable_script.sh
+
+# Set permissions to make the script executable
+RUN chmod +x /vulnerable_script.sh
+
+# Expose a port (just for demonstration, not necessarily related to the vulnerability)
 EXPOSE 80
-EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
-WORKDIR /src
-COPY ["ContainerScanning.HelloWorld/ContainerScanning.HelloWorld.csproj", "ContainerScanning.HelloWorld/"]
-RUN dotnet restore "ContainerScanning.HelloWorld/ContainerScanning.HelloWorld.csproj"
-COPY . .
-WORKDIR "/src/ContainerScanning.HelloWorld"
-RUN dotnet build "ContainerScanning.HelloWorld.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "ContainerScanning.HelloWorld.csproj" -c Release -o /app/publish
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "ContainerScanning.HelloWorld.dll"]
+# Command to run the vulnerable script (again, just for demonstration)
+CMD ["/bin/sh", "/vulnerable_script.sh"]
