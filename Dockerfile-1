@@ -1,11 +1,11 @@
 # Use an outdated version of Alpine Linux as the base image
 FROM alpine:3.10
 
-# Install a vulnerable package (e.g., old version of OpenSSL)
-RUN apk --no-cache add openssl=1.0.2t-r0
+# Install a vulnerable package (example: using an outdated version of a utility)
+RUN apk --no-cache add util-linux=2.33-r0
 
 # Create a vulnerable script that uses the vulnerable package
-RUN echo "Using vulnerable OpenSSL: $(openssl version)" > /vulnerable_script.sh
+RUN echo "Using vulnerable util-linux: $(which fdisk)" > /vulnerable_script.sh
 
 # Set permissions to make the script executable
 RUN chmod +x /vulnerable_script.sh
