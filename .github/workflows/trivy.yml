@@ -36,7 +36,7 @@ jobs:
           image-ref: 'docker.io/stalibali/clockbox:${{ github.sha }}'
           scan-type: image
           format: 'table'
-          output: 'dependency-results.sbom.json'
+          # output: 'dependency-results.sbom.json'
           # exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
