@@ -1,33 +1,17 @@
-name: MicroEnforcer Injection CI
+name: microenf
 
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
 on:
   push:
-    branches: [ "main" ]
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 env:
-  # Authenticate with Aqua Registry - optional if Aqua Scanner is pushed to local private registry
-  AQUA_USER: ${{ secrets.AQUA_USER }} # Aqua Registry
-  AQUA_PASSWORD: ${{ secrets.AQUA_PASSWORD }} # Aqua Registry
-
-  # Authenticate the Aqua Scanner with Aqua Server 
-  AQUA_SCANNER_USER: ${{ secrets.AQUA_SCANNER_USER }} # Aqua Image Scanner authentication
-  AQUA_SCANNER_PASSWORD: ${{ secrets.AQUA_SCANNER_PASSWORD }} # Aqua Image Scanner authentication
-  AQUA_SERVER_URL: ${{ secrets.AQUA_SERVER_URL }} # Aqua Image Scanner authentication
-
-  # MicroEnforcer embedding/injection variables 
-  AQUA_GATEWAY: ${{ secrets.AQUA_GATEWAY }} # Aqua Gateway address
-  AQUA_ME_EnforcerGroup_Token: ${{ secrets.AQUA_ME_EnforcerGroup_Token }} # Authenticates the MicroEnforcer with the Aqua Server
-
-  # Authenticate with local/private registry. Can be ECR/ACR/GCR etc. 
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }} # Docker Registry authentication
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} # Docker Registry authentication
-
-  # Env Var for the generic purposes
   BuildNumber: ${{ github.run_id }}-${{ github.run_number }}
-  ImageName: stalibali/container-scanning-demo
-   # image reference
-  image-ref: ${{ ImageName }}:github-${{ env.BuildNumber }}
-        
+  ImageName: 'stalibali/container-scanning-demo'
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -48,23 +32,36 @@ jobs:
         # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
         password: ${{ secrets.DockerHubPassword }}
         # Docker repository to tag the image with
-        repository: ${{ ImageName }}
+        repository: ${{ env.ImageName }}
         # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
-        tags: 'github-${{ BuildNumber }}'
+        tags: 'github-${{ env.BuildNumber }}'
         # Path to the build context
         path: 'src'
         # Path to the Dockerfile (Default is '{path}/Dockerfile')
-        dockerfile: ./Dockerfile
+        dockerfile: 'src/ContainerScanning.HelloWorld/Dockerfile'
         # Whether to push the image
         push: false
+  
+    - name: Trivy Scan - Unknown, Low and Medium Severity
+      uses: aquasecurity/trivy-action@0.0.7
+      with:
+        # image reference
+        image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}
+        # exit code when vulnerabilities were found
+        exit-code: 0
+        # severities of vulnerabilities to be displayed
+        severity: UNKNOWN,LOW,MEDIUM
         
-    - name: Aqua Image Scanner - Scan Embedded Image and Register to Aqua Console # Note the --registry and --register-compliant command 
-      run: |
-        docker image ls
-        docker login registry.aquasec.com -u $AQUA_USER -p $AQUA_PASSWORD
-        docker pull registry.aquasec.com/scanner:2022.4
-        docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock -e BUILD_NUMBER=$BUILD_NUMBER -e BUILD_JOB_NAME=$BUILD_NAME registry.aquasec.com/scanner:2022.4 scan -w /tmp --host $AQUA_SERVER_URL --user $AQUA_SCANNER_USER --password $AQUA_SCANNER_PASSWORD --show-negligible --local $image-ref --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub" > /dev/null
-    
+    - name: Trivy Scan - High and Critical Severity
+      uses: aquasecurity/trivy-action@0.0.7
+      with:
+        # image reference
+        image-ref: ${{ env.ImageName }}:github-${{ env.BuildNumber }}
+        # exit code when vulnerabilities were found
+        exit-code: 1
+        # severities of vulnerabilities to be displayed
+        severity: HIGH,CRITICAL
+        
     - name: Push Docker image
       uses: docker/build-push-action@v1.1.0
       with:
@@ -73,17 +70,12 @@ jobs:
         # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
         password: ${{ secrets.DockerHubPassword }}
         # Docker repository to tag the image with
-        repository: ${{ ImageName }}
+        repository: ${{ env.ImageName }}
         # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
-        tags: 'github-${{ BuildNumber }}'
+        tags: 'github-${{ env.BuildNumber }}'
         # Path to the build context
         path: 'src'
         # Path to the Dockerfile (Default is '{path}/Dockerfile')
-        dockerfile: ./Dockerfile
+        dockerfile: 'src/ContainerScanning.HelloWorld/Dockerfile'
         # Whether to push the image
         push: true
-       
-    - uses: actions/upload-artifact@v3
-      with:
-        name: aqua-artifact
-        path: out.*
