@@ -34,7 +34,7 @@ jobs:
     name: Build Image, Inject MicroEnforcer, Scan Image, and Push Image
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     - 
         name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -69,14 +69,14 @@ jobs:
         docker run --rm -v $GITHUB_WORKSPACE:/tmp -v /var/run/docker.sock:/var/run/docker.sock -e BUILD_NUMBER=$BUILD_NUMBER -e BUILD_JOB_NAME=$BUILD_NAME registry.aquasec.com/scanner:2022.4 scan -w /tmp --host $AQUA_SERVER_URL --user $AQUA_SCANNER_USER --password $AQUA_SCANNER_PASSWORD --show-negligible --local $DST_IMAGE --htmlfile /tmp/out.html --jsonfile /tmp/out.json --register-compliant --registry "Docker Hub"
     
     - name: Push Scanned Embedded image to Local/Private Container Registry
-      uses: docker/login-action@v4
+      uses: docker/login-action@v3
       with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           push: true
           tag: $DST_IMAGE 
       
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v3
       with:
         name: aqua-artifact
         path: out.*
