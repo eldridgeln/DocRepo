@@ -4,9 +4,9 @@ name: Build-Scan-Push
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 env:
   # Authenticate with Aqua Registry - optional if Aqua Scanner is pushed to local private registry
