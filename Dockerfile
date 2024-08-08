@@ -8,7 +8,7 @@ RUN apk --no-cache add wget
 RUN echo "Using vulnerable wget: $(wget --version)" > /vulnerable_script.sh
 
 # Set permissions to make the script executable
-RUN chmod +x /vulnerable_script.sh
+# RUN chmod +x /vulnerable_script.sh
 RUN PIP_EXTRA_INDEX_URL=https://test1:passwordhidden@xxxx.jfrog.io/xxx/api/pypi/pypi-local/simple
 
 # Expose a port (just for demonstration, not necessarily related to the vulnerability)
