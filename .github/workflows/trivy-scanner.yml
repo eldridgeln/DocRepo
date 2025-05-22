@@ -38,7 +38,7 @@ jobs:
       - name: Trivy Image Scan (Fail on High/Critical)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'sample-app:latest'
+          image-ref: 'my-image:latest'
           severity: 'HIGH,CRITICAL'
           exit-code: 1
           format: table
