@@ -63,8 +63,9 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:${{ github.sha }}
 
-      - name: Upload trivy report as a Github artifact    
-        uses: actions/upload-artifact@v4
+      - name: Trivy SARIF Report for GitHub Security Tab
+        uses: aquasecurity/trivy-action@master
         with:
-         name: aqua-artifact
-         path: out.*
+          scan-type: fs
+          format: sarif
+          output: trivy-results.sarif
