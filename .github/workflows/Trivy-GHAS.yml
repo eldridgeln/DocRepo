@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: 
       - main 
+      
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  id-token: write
+
 env:
   # Authenticate with local/private registry. Can be ECR/ACR/GCR etc. 
   DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }} # Docker Registry authentication
