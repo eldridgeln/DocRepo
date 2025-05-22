@@ -27,6 +27,10 @@ jobs:
         run: |
           docker build -t my-image -f Dockerfile .
           
+      - name: Tag Image with Git Commit SHA
+        run: |
+          docker tag my-image my-image:${{ github.sha }}
+    
       - name: Trivy FS Scan (Secrets + IaC)
         uses: aquasecurity/trivy-action@master
         with:
@@ -42,6 +46,17 @@ jobs:
           severity: 'HIGH,CRITICAL'
           exit-code: 0
           format: table
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Tag Image for Docker Hub with SHA
+        run: |
+         docker tag my-image ${{ secrets.DOCKERHUB_USERNAME }}/my-image:${{ github.sha }}
+
+      - name: Push Image to Docker Hub
+        run: |
+         docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-image:${{ github.sha }}
 
       - name: Trivy SBOM Generation
         uses: aquasecurity/trivy-action@master
