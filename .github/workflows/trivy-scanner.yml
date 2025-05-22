@@ -25,8 +25,8 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t sample-app:latest .
-
+          docker build -t my-image -f Dockerfile .
+          
       - name: Trivy FS Scan (Secrets + IaC)
         uses: aquasecurity/trivy-action@master
         with:
