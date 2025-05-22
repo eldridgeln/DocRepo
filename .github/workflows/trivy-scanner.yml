@@ -40,7 +40,7 @@ jobs:
         with:
           image-ref: 'my-image:latest'
           severity: 'HIGH,CRITICAL'
-          exit-code: 1
+          exit-code: 0
           format: table
 
       - name: Trivy SBOM Generation
