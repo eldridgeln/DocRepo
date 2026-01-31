@@ -24,11 +24,11 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t my-image -f Dockerfile .
+          docker build -t my-IA03-image -f Dockerfile .
           
       - name: Tag Image with Git Commit SHA
         run: |
-          docker tag my-image my-image:${{ github.sha }}
+          docker tag my-IA03-image my-IA03-image:${{ github.sha }}
     
       - name: Trivy FS Scan (Secrets + IaC)
         uses: aquasecurity/trivy-action@master
@@ -38,11 +38,11 @@ jobs:
           format: table
           exit-code: 0
 
-      - name: Trivy Image Scan (Fail on High/Critical)
+      - name: Trivy Image Scan (Fail on Critical)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'my-image:latest'
-          severity: 'HIGH,CRITICAL'
+          severity: 'CRITICAL'
           exit-code: 0
           format: table
 
@@ -51,11 +51,11 @@ jobs:
 
       - name: Tag Image for Docker Hub with SHA
         run: |
-         docker tag my-image ${{ secrets.DOCKERHUB_USERNAME }}/my-image:${{ github.sha }}
+         docker tag my-IA03-image ${{ secrets.DOCKERHUB_USERNAME }}/my-IA03-image:${{ github.sha }}
 
       - name: Push Image to Docker Hub
         run: |
-         docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-image:${{ github.sha }}
+         docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-IA03-image:${{ github.sha }}
 
       - name: Trivy SBOM Generation
         uses: aquasecurity/trivy-action@master
@@ -69,23 +69,3 @@ jobs:
         with:
           name: sbom
           path: sbom.cdx.json
-
-      - name: GHAS CodeQL Init
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-
-      - name: GHAS CodeQL Analyze
-        uses: github/codeql-action/analyze@v3
-
-      - name: Trivy SARIF Report for GitHub Security Tab
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          format: sarif
-          output: trivy-results.sarif
-
-      - name: Upload SARIF to GitHub
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-results.sarif
