@@ -30,21 +30,20 @@ jobs:
         run: |
           docker tag prg-image prg-image:${{ github.sha }}
     
-      - name: Trivy FS Scan (Secrets + IaC)
-        uses: aquasecurity/trivy-action@master
+      - name: Run Aqua scanner
+        uses: docker://aquasec/aqua-scanner
         with:
-          scan-type: config
-          scan-ref: .
-          format: table
-          exit-code: 0
-
-      - name: Trivy Image Scan (Fail on Critical)
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'my-image:latest'
-          severity: 'CRITICAL'
-          exit-code: 0
-          format: table
+          args: trivy fs --security-checks config,vuln,secret . --sast
+          # To customize which severities to scan for, add the following flag: --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          # To enable SAST scanning, add: --sast
+          # To enable npm/dotnet non-lock file scanning, add: --package-json / --dotnet-proj
+          # Just to Rerun the WFs
+        env:
+          AQUA_KEY: ${{ secrets.AQUA_KEY }}
+          AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
+          TRIVY_RUN_AS_PLUGIN: 'aqua'
+          #SAST: 1
+          TRIVY_DEBUG: 1
 
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
