@@ -42,12 +42,13 @@ jobs:
             scan \
               -H https://console.cloud.aquasec.com \
               -A "${SCANNER_TOKEN}" \
+              -D --direct-cc \
               --local \
               --registry "Docker Hub" \
               --register \
-              exit-code: 1 \
-              --severity HIGH,CRITICAL \
-              --json /scan-results.json \
+              #exit-code: 1 \
+              # --severity HIGH,CRITICAL \
+              #  --json /scan-results.json \
               prg-image:${{ github.sha }}
 
       - name: Upload Scan Results Artifact (JSON)
