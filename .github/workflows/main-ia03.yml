@@ -38,7 +38,7 @@ jobs:
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            registry.aquasec.com/scanner:2022.4 \
+            registry.aquasec.com/scanner:latest-saas \
             scan \
               -H https://console.cloud.aquasec.com \
               -A "${SCANNER_TOKEN}" \
@@ -46,9 +46,6 @@ jobs:
               --local \
               --registry "Docker Hub" \
               --register \
-              #exit-code: 1 \
-              # --severity HIGH,CRITICAL \
-              #  --json /scan-results.json \
               prg-image:${{ github.sha }}
 
       - name: Upload Scan Results Artifact (JSON)
