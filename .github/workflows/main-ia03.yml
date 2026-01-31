@@ -1,4 +1,5 @@
-name: Image Scan with build gate on SEV
+name: Build + Aqua SaaS Scanner (Register in Console)
+
 on:
   push:
     branches: [main]
@@ -7,14 +8,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  actions: read
-  id-token: write
+  id-token: write   # if needed for future OIDC
 
 jobs:
-  build-and-secure:
-    name: CI Build with Security
+  build-and-scan:
+    name: Build Docker Image + Aqua SaaS Scan
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -24,46 +24,56 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t prg-image -f Dockerfile .
-          
-      - name: Tag Image with Git Commit SHA
-        run: |
-          docker tag prg-image prg-image:${{ github.sha }}
-    
-      - name: Run Aqua scanner
-        uses: docker://aquasec/aqua-scanner
-        with:
-          args: trivy fs --security-checks config,vuln,secret . --sast --severity CRITICAL
-          # To customize which severities to scan for, add the following flag: --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
-          # To enable SAST scanning, add: --sast
-          # To enable npm/dotnet non-lock file scanning, add: --package-json / --dotnet-proj
-          # Just to Rerun the WFs
+          docker build -t prg-image:${{ github.sha }} -f Dockerfile .
+
+      - name: Scan Image with Aqua SaaS Scanner (Token Auth)
         env:
-          AQUA_KEY: ${{ secrets.AQUA_KEY }}
-          AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
-          TRIVY_RUN_AS_PLUGIN: 'aqua'
-          #SAST: 1
-          TRIVY_DEBUG: 1
+          SCANNER_TOKEN: ${{ secrets.AQUA_SCANNER_TOKEN }}
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            registry.aquasec.com/scanner:latest-saas \
+            scan \
+              -H https://<ENVIRONMENT_ID>.cloud.aquasec.com \
+              -A "${SCANNER_TOKEN}" \
+              --local \
+              --exit-code 1 \
+              --severity HIGH,CRITICAL \
+              --json /scan-results.json \
+              prg-image:${{ github.sha }}
+        # Optional flags you can add:
+        #   --no-verify-ssl          (if self-signed or proxy issues)
+        #   --show all               (more verbose output)
+        #   --html /scan-results.html (if you want HTML report)
+
+      - name: Upload Scan Results Artifact (JSON)
+        if: always()   # upload even on failure
+        uses: actions/upload-artifact@v4
+        with:
+          name: aqua-scan-results
+          path: /scan-results.json   # adjust path if changed above
 
       - name: Log in to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Tag Image for Docker Hub with SHA
+      - name: Tag & Push Image to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-         docker tag prg-image ${{ secrets.DOCKERHUB_USERNAME }}/prg-image:${{ github.sha }}
+          docker tag prg-image:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/prg-image:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/prg-image:${{ github.sha }}
 
-      - name: Push Image to Docker Hub
-        run: |
-         docker push ${{ secrets.DOCKERHUB_USERNAME }}/prg-image:${{ github.sha }}
-
-      - name: Trivy SBOM Generation
+      # Optional: Generate SBOM from filesystem (repo/code level)
+      - name: Generate SBOM with Trivy OSS
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
           format: cyclonedx
           output: sbom.cdx.json
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
 
       - name: Upload SBOM Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sbom
