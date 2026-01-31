@@ -22,6 +22,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Login to Aqua Registry
+        run: |
+          docker login registry.aquasec.com \
+            -u "${{ secrets.AQUA_REGISTRY_USERNAME }}" \
+            -p "${{ secrets.AQUA_REGISTRY_PASSWORD }}"
+     
       - name: Build Docker Image
         run: |
           docker build -t prg-image:${{ github.sha }} -f Dockerfile .
@@ -29,8 +35,6 @@ jobs:
       - name: Scan Image with Aqua SaaS Scanner (Token Auth)
         env:
           SCANNER_TOKEN: ${{ secrets.AQUA_SCANNER_TOKEN }}
-          AQUA_REGISTRY_USERNAME: ${{ secrets.AQUA_REGISTRY_USERNAME }}
-          AQUA_REGISTRY_PASSWORD: ${{ secrets.AQUA_REGISTRY_PASSWORD }}
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
@@ -38,17 +42,13 @@ jobs:
             scan \
               -H https://console.cloud.aquasec.com \
               -A "${SCANNER_TOKEN}" \
-              --local prg-image:${{ github.sha }} \
+              --local \
               --registry "Docker Hub" \
-              --register
+              --register \
               --exit-code 1 \
               --severity HIGH,CRITICAL \
               --json /scan-results.json \
               prg-image:${{ github.sha }}
-        # Optional flags you can add:
-        #   --no-verify-ssl          (if self-signed or proxy issues)
-        #   --show all               (more verbose output)
-        #   --html /scan-results.html (if you want HTML report)
 
       - name: Upload Scan Results Artifact (JSON)
         if: always()   # upload even on failure
