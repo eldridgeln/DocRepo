@@ -34,7 +34,7 @@ jobs:
             -v /var/run/docker.sock:/var/run/docker.sock \
             registry.aquasec.com/scanner:latest-saas \
             scan \
-              -H https://<ENVIRONMENT_ID>.cloud.aquasec.com \
+              -H https://99c607c318-gw.cloud.aquasec.com:443 \
               -A "${SCANNER_TOKEN}" \
               --local \
               --exit-code 1 \
