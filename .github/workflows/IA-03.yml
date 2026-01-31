@@ -24,11 +24,11 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t my-IA03-image -f Dockerfile .
+          docker build -t prg-image -f Dockerfile .
           
       - name: Tag Image with Git Commit SHA
         run: |
-          docker tag my-IA03-image my-IA03-image:${{ github.sha }}
+          docker tag prg-image prg-image:${{ github.sha }}
     
       - name: Trivy FS Scan (Secrets + IaC)
         uses: aquasecurity/trivy-action@master
@@ -51,11 +51,11 @@ jobs:
 
       - name: Tag Image for Docker Hub with SHA
         run: |
-         docker tag my-IA03-image ${{ secrets.DOCKERHUB_USERNAME }}/my-IA03-image:${{ github.sha }}
+         docker tag prg-image ${{ secrets.DOCKERHUB_USERNAME }}/prg-image:${{ github.sha }}
 
       - name: Push Image to Docker Hub
         run: |
-         docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-IA03-image:${{ github.sha }}
+         docker push ${{ secrets.DOCKERHUB_USERNAME }}/prg-image:${{ github.sha }}
 
       - name: Trivy SBOM Generation
         uses: aquasecurity/trivy-action@master
