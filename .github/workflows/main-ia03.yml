@@ -38,7 +38,9 @@ jobs:
             scan \
               -H https://console.cloud.aquasec.com \
               -A "${SCANNER_TOKEN}" \
-              --local \
+              --local prg-image:${{ github.sha }} \
+              --registry "Docker Hub" \
+              --register
               --exit-code 1 \
               --severity HIGH,CRITICAL \
               --json /scan-results.json \
