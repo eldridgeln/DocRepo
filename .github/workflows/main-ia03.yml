@@ -48,13 +48,6 @@ jobs:
               --register \
               prg-image:${{ github.sha }}
 
-      - name: Upload Scan Results Artifact (JSON)
-        if: always()   # upload even on failure
-        uses: actions/upload-artifact@v4
-        with:
-          name: aqua-scan-results
-          path: /scan-results.json   # adjust path if changed above
-
       - name: Log in to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
