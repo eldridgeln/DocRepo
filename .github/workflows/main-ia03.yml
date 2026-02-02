@@ -69,15 +69,15 @@ jobs:
             echo "install.sh checksum failed"
             exit 1
           fi
-
           BINDIR="." sh install.sh
           rm install.sh install.sh.checksum
-
           ./billy generate \
             --access-token "${{ secrets.GITHUB_TOKEN }}" \
             --aqua-key "${{ secrets.AQUA_KEY }}" \
             --aqua-secret "${{ secrets.AQUA_SECRET }}" \
-            --artifact-path "docker://prg-image:${{ github.sha }}"
+            --artifact-path "docker://prg-image:${{ github.sha }}" \
+            --report-format sbom \
+            --sbom-path sbom.cdx.json
 
             # The docker image name:tag of the newly built image
             # --artifact-path "my-image-name:${{ env.tag-version }}" 
