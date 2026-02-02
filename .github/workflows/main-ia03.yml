@@ -60,6 +60,7 @@ jobs:
 
       - name: Manifest Generation SBOM
         run: |
+          docker image ls
           export BILLY_SERVER=https://billy.codesec.aquasec.com
 
           curl -sLo install.sh https://download.codesec.aquasec.com/billy/install.sh
