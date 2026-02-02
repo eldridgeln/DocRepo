@@ -1,4 +1,5 @@
 # Use an outdated version of Alpine Linux as the base image (known to trigger vuln findings)
+# Dockerfile for testing prg image
 FROM alpine:3.10
 
 # Install the latest version of a package known to have vulnerabilities (e.g., wget)
