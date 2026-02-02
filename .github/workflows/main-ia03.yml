@@ -76,10 +76,8 @@ jobs:
             --access-token "${{ secrets.GITHUB_TOKEN }}" \
             --aqua-key "${{ secrets.AQUA_KEY }}" \
             --aqua-secret "${{ secrets.AQUA_SECRET }}" \
-            --artifact-path "docker://prg-image:${{ github.sha }}" \
-            --report-format sbom \
-            --sbom-path sbom.cdx.json
-
+            --artifact-path "stalibali/prg-image:${{ github.sha }}" \
+         
             # The docker image name:tag of the newly built image
             # --artifact-path "my-image-name:${{ env.tag-version }}" 
             # OR the path to the root folder of your project. I.e my-repo/my-app 
