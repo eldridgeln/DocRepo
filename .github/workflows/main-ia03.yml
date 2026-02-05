@@ -27,17 +27,35 @@ jobs:
           docker login registry.aquasec.com \
             -u "${{ secrets.AQUA_REGISTRY_USERNAME }}" \
             -p "${{ secrets.AQUA_REGISTRY_PASSWORD }}"
-     
+   
       - name: Build Docker Image
         run: |
           docker build -t prg-image:${{ github.sha }} -f Dockerfile .
 
+      #- name: Scan Image with Aqua SaaS Scanner (Token Auth)
+       # env:
+        #  SCANNER_TOKEN: ${{ secrets.AQUA_SCANNER_TOKEN }}
+        #run: |
+         # docker run --rm \
+          #  -v /var/run/docker.sock:/var/run/docker.sock \
+           # registry.aquasec.com/scanner:latest-saas \
+            #scan \
+             # -H https://console.cloud.aquasec.com \
+              #-A "${SCANNER_TOKEN}" \
+              #-D --direct-cc \
+              #--local \
+              #--registry "Docker Hub" \
+              #--register \
+              #prg-image:${{ github.sha }}
+              
       - name: Scan Image with Aqua SaaS Scanner (Token Auth)
         env:
           SCANNER_TOKEN: ${{ secrets.AQUA_SCANNER_TOKEN }}
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
+            -e TRIVY_SCANNERS="vuln,secret" \
+            -e TRIVY_IMAGE_CONFIG_SCANNERS="secret" \
             registry.aquasec.com/scanner:latest-saas \
             scan \
               -H https://console.cloud.aquasec.com \
@@ -46,7 +64,7 @@ jobs:
               --local \
               --registry "Docker Hub" \
               --register \
-              prg-image:${{ github.sha }}
+              prg-image:${{ github.sha }}       
 
       - name: Log in to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
