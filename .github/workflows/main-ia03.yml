@@ -32,6 +32,23 @@ jobs:
         run: |
           docker build -t prg-image:${{ github.sha }} -f Dockerfile .
 
+      
+      # Optional: repo/filesystem scan (this scans the repo contents, not the built image)
+      - name: Run Aqua scanner (fs scan)
+        uses: docker://aquasec/aqua-scanner
+        env:
+          AQUA_KEY: ${{ secrets.AQUA_KEY }}
+          AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
+          GITHUB_TOKEN: ${{ github.token }}
+          TRIVY_RUN_AS_PLUGIN: "aqua"
+        with:
+          args: >
+            trivy fs
+            --scanners misconfig,vuln,secret
+            --sast
+            --severity HIGH,CRITICAL
+            .
+
       # Image scan (Aqua SaaS scanner container) — includes ENV/config secrets via TRIVY_IMAGE_CONFIG_SCANNERS
       - name: Scan Image with Aqua SaaS Scanner (Token Auth)
         env:
@@ -57,22 +74,6 @@ jobs:
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
             -u "${{ secrets.DOCKERHUB_USERNAME }}" \
             --password-stdin
-
-      # Optional: repo/filesystem scan (this scans the repo contents, not the built image)
-      - name: Run Aqua scanner (fs scan)
-        uses: docker://aquasec/aqua-scanner
-        env:
-          AQUA_KEY: ${{ secrets.AQUA_KEY }}
-          AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
-          GITHUB_TOKEN: ${{ github.token }}
-          TRIVY_RUN_AS_PLUGIN: "aqua"
-        with:
-          args: >
-            trivy fs
-            --scanners misconfig,vuln,secret
-            --sast
-            --severity HIGH,CRITICAL
-            .
 
       - name: Tag & Push Image to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
