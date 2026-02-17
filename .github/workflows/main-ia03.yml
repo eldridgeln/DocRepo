@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # if needed for future OIDC
+  id-token: write
 
 jobs:
   build-and-scan:
@@ -27,63 +27,52 @@ jobs:
           docker login registry.aquasec.com \
             -u "${{ secrets.AQUA_REGISTRY_USERNAME }}" \
             -p "${{ secrets.AQUA_REGISTRY_PASSWORD }}"
-   
+
       - name: Build Docker Image
         run: |
           docker build -t prg-image:${{ github.sha }} -f Dockerfile .
 
-      #- name: Scan Image with Aqua SaaS Scanner (Token Auth)
-       # env:
-        #  SCANNER_TOKEN: ${{ secrets.AQUA_SCANNER_TOKEN }}
-        #run: |
-         # docker run --rm \
-          #  -v /var/run/docker.sock:/var/run/docker.sock \
-           # registry.aquasec.com/scanner:latest-saas \
-            #scan \
-             # -H https://console.cloud.aquasec.com \
-              #-A "${SCANNER_TOKEN}" \
-              #-D --direct-cc \
-              #--local \
-              #--registry "Docker Hub" \
-              #--register \
-              #prg-image:${{ github.sha }}
-              
-  #    - name: Scan Image with Aqua SaaS Scanner (Token Auth)
-   #     env:
-    #      SCANNER_TOKEN: ${{ secrets.AQUA_SCANNER_TOKEN }}
-    #    run: |
-      #    docker run --rm \
-     #       -v /var/run/docker.sock:/var/run/docker.sock \
-     #       -e TRIVY_SCANNERS="vuln,secret" \
-    #        -e TRIVY_IMAGE_CONFIG_SCANNERS="secret" \
-     #       registry.aquasec.com/scanner:latest-saas \
-   #         scan \
-    #          -H https://console.cloud.aquasec.com \
-     #         -A "${SCANNER_TOKEN}" \
-     #         -D --direct-cc \
-     #         --local \
-     #         --registry "Docker Hub" \
-     #         --register \
-      #        prg-image:${{ github.sha }}       
+      # Image scan (Aqua SaaS scanner container) — includes ENV/config secrets via TRIVY_IMAGE_CONFIG_SCANNERS
+      - name: Scan Image with Aqua SaaS Scanner (Token Auth)
+        env:
+          SCANNER_TOKEN: ${{ secrets.AQUA_SCANNER_TOKEN }}
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -e TRIVY_SCANNERS="vuln,secret" \
+            -e TRIVY_IMAGE_CONFIG_SCANNERS="secret" \
+            registry.aquasec.com/scanner:latest-saas \
+            scan \
+              -H https://console.cloud.aquasec.com \
+              -A "${SCANNER_TOKEN}" \
+              -D --direct-cc \
+              --local \
+              --registry "Docker Hub" \
+              --register \
+              prg-image:${{ github.sha }}
 
       - name: Log in to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-		       
-      - name: Run Aqua scanner
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
+            -u "${{ secrets.DOCKERHUB_USERNAME }}" \
+            --password-stdin
+
+      # Optional: repo/filesystem scan (this scans the repo contents, not the built image)
+      - name: Run Aqua scanner (fs scan)
         uses: docker://aquasec/aqua-scanner
-        with:
-          args: trivy fs --scanners misconfig,vuln,secret . --sast --severity HIGH,CRITICAL
-          # To customize which severities to scan for, add the following flag: --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
-          # To enable SAST scanning, add: --sast
-          # To enable reachability scanning, add: --reachability
-          # To enable npm/dotnet/gradle non-lock file scanning, add: --package-json / --dotnet-proj / --gradle
         env:
           AQUA_KEY: ${{ secrets.AQUA_KEY }}
           AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
           GITHUB_TOKEN: ${{ github.token }}
-          TRIVY_RUN_AS_PLUGIN: 'aqua'
-          # For http/https proxy configuration add env vars: HTTP_PROXY/HTTPS_PROXY, CA-CRET (path to CA certificate)
+          TRIVY_RUN_AS_PLUGIN: "aqua"
+        with:
+          args: >
+            trivy fs
+            --scanners misconfig,vuln,secret
+            --sast
+            --severity HIGH,CRITICAL
+            .
 
       - name: Tag & Push Image to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -92,26 +81,5 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/prg-image:${{ github.sha }}
 
       - name: Manifest Generation SBOM
-        run: |
-          docker image ls
-          export BILLY_SERVER=https://billy.codesec.aquasec.com
-
-          curl -sLo install.sh https://download.codesec.aquasec.com/billy/install.sh
-          curl -sLo install.sh.checksum https://github.com/argonsecurity/releases/releases/latest/download/install.sh.checksum
-
-          if ! sha256sum --check install.sh.checksum; then
-            echo "install.sh checksum failed"
-            exit 1
-          fi
-          BINDIR="." sh install.sh
-          rm install.sh install.sh.checksum
-          ./billy generate \
-            --access-token "${{ secrets.GITHUB_TOKEN }}" \
-            --aqua-key "${{ secrets.AQUA_KEY }}" \
-            --aqua-secret "${{ secrets.AQUA_SECRET }}" \
-            --artifact-path "stalibali/prg-image:${{ github.sha }}" \
-         
-            # The docker image name:tag of the newly built image
-            # --artifact-path "my-image-name:${{ env.tag-version }}" 
-            # OR the path to the root folder of your project. I.e my-repo/my-app 
-            # --artifact-path "${{env.MY_APP_ROOT}}"
+        env:
+          BILLY_SERVER: https://billy.codesec.aquasec_
